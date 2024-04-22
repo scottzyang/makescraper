@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/gocolly/colly"
 )
@@ -15,7 +14,7 @@ type EggItem struct {
 	ItemPrice     string `json:"item_price"`
 	PricePerCount string `json:"price_per_count"`
 	ItemName      string `json:"item_name"`
-	ItemImage     string `json:"item_image"`
+	Url           string `json:"url"`
 }
 
 func main() {
@@ -26,22 +25,21 @@ func main() {
 	var eggItems []EggItem
 
 	// Find and extract item information
-	c.OnHTML("[id=\"\\30 \"] > section > div", func(e *colly.HTMLElement) {
+	c.OnHTML("[id=\"\\30 \"] > section > div > div", func(e *colly.HTMLElement) {
 		// Increment the image selector ID with each iteration
-		imageSelector := "#is-0-productImage-" + strconv.Itoa(len(eggItems))
 
 		// Extracting data using the provided selectors
-		itemImage := e.ChildAttr(imageSelector, "src")
-		itemPrice := e.ChildText("div:nth-child(3) > div > div > div > div:nth-child(2) > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > span")
-		pricePerCount := e.ChildText("div:nth-child(3) > div > div > div > div:nth-child(2) > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > div.gray.mr1.f6.f5-l.flex.items-end.mt1")
-		itemName := e.ChildText("div:nth-child(3) > div > div > div > div:nth-child(2) > span > span")
+		itemPrice := e.ChildText("div > div > div > div > div > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > span")
+		pricePerCount := e.ChildText("div > div > div > div > div > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > div.gray.mr1.f6.f5-l.flex.items-end.mt1")
+		itemName := e.ChildText("div > div > div > div > div > span > span")
+		url := e.ChildAttr(`div > div > a`, "href")
 
 		// Create a new EggItem with the extracted data
 		eggItem := EggItem{
 			ItemPrice:     itemPrice,
 			PricePerCount: pricePerCount,
 			ItemName:      itemName,
-			ItemImage:     itemImage,
+			Url:           url,
 		}
 
 		// Append the EggItem to the slice
@@ -62,7 +60,7 @@ func main() {
 		fmt.Printf("Item Name: %s\n", item.ItemName)
 		fmt.Printf("Item Price: %s\n", item.ItemPrice)
 		fmt.Printf("Price Per Count: %s\n", item.PricePerCount)
-		fmt.Printf("Item Image: %s\n", item.ItemImage)
+		fmt.Printf("Url: %s\n", item.Url)
 		fmt.Println("-----------------------------------")
 	}
 
