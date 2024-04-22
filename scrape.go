@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gocolly/colly"
 )
@@ -26,24 +27,33 @@ func main() {
 
 	// Find and extract item information
 	c.OnHTML("[id=\"\\30 \"] > section > div > div", func(e *colly.HTMLElement) {
-		// Increment the image selector ID with each iteration
-
-		// Extracting data using the provided selectors
-		itemPrice := e.ChildText("div > div > div > div > div > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > span")
-		pricePerCount := e.ChildText("div > div > div > div > div > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > div.gray.mr1.f6.f5-l.flex.items-end.mt1")
-		itemName := e.ChildText("div > div > div > div > div > span > span")
-		url := e.ChildAttr(`div > div > a`, "href")
-
-		// Create a new EggItem with the extracted data
-		eggItem := EggItem{
-			ItemPrice:     itemPrice,
-			PricePerCount: pricePerCount,
-			ItemName:      itemName,
-			Url:           url,
+		// Check if the div has the class "w-100" or "w_3jM4"
+		adclass := e.Attr("class")
+		if strings.Contains(adclass, "w-100") || strings.Contains(adclass, "w_3jM4") {
+			// Skip processing this div
+			fmt.Println("Skipping div with class 'w-100' or 'w_3jM4'")
+			return
 		}
 
-		// Append the EggItem to the slice
-		eggItems = append(eggItems, eggItem)
+		if e.ChildAttr("div", "style") == "contain-intrinsic-size:198px 340px" {
+			// Extracting data using the provided selectors)
+			itemPrice := e.ChildText("div > div > div > div > div > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > span")
+			pricePerCount := e.ChildText("div > div > div > div > div > div.flex.flex-wrap.justify-start.items-center.lh-title.mb1 > div.gray.mr1.f6.f5-l.flex.items-end.mt1")
+			itemName := e.ChildText("div > div > div > div > div > span > span")
+			url := e.ChildAttr(`div > div > a`, "href")
+
+			// Create a new EggItem with the extracted data
+			eggItem := EggItem{
+				ItemPrice:     itemPrice,
+				PricePerCount: pricePerCount,
+				ItemName:      itemName,
+				Url:           url,
+			}
+
+			// Append the EggItem to the slice
+			eggItems = append(eggItems, eggItem)
+
+		}
 	})
 
 	// Before making a request, log "Visiting ..."
